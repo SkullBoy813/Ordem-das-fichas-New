@@ -2,5 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-/* extras */
-body { @apply bg-bg-black text-gray-200; }
