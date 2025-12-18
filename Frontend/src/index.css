@@ -4,7 +4,13 @@
 
 @layer base {
   body {
-    @apply bg-black text-white;
+    /* Global background image (place your image at public/background.jpg) */
+    /* Reduced overlay opacity to increase background brightness */
+    background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: #fff;
   }
 }
 
