@@ -51,8 +51,15 @@ exports.login = async (req, res, next) => {
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
-  
-      res.json({ token });
+
+      res.json({ 
+        token,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email
+        }
+      });
     } catch (err) {
       next(err);
     }

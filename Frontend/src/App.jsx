@@ -1,24 +1,49 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import Fichas from './pages/Fichas'
-import ViewFicha from './pages/ViewFicha'
-import CriarFicha from './pages/criar/CriarFicha' 
-import Layout from './components/Layout' 
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Auth from "./pages/Auth/Auth";
+import Dashboard from "./pages/Dashboard/Dashboard";
+import FichasList from "./pages/Fichas/FichasList";
+import FichaDetail from "./pages/Fichas/FichaDetail";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-export default function App(){
+export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login/>} />
-        <Route element={<Layout/>}>
-          <Route path="/" element={<Home/>} />
-          <Route path="/fichas" element={<Fichas/>} />
-          <Route path="/ficha/:id" element={<ViewFicha/>} />
-          <Route path="/criar-ficha/*" element={<CriarFicha/>} />
-        </Route>
+        <Route path="/" element={<Auth />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fichas"
+          element={
+            <ProtectedRoute>
+              <FichasList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fichas/nova"
+          element={
+            <ProtectedRoute>
+              <FichaDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fichas/:id"
+          element={
+            <ProtectedRoute>
+              <FichaDetail />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }

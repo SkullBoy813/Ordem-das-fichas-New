@@ -10,6 +10,7 @@ const FichaSchema = new mongoose.Schema({
   origem: String,
   trilha: String,
   patente: String,
+  nex: { type: Number, default: 0 }, // Nível de Exposição
 
   // Atributos
   atributos: {
@@ -41,8 +42,29 @@ const FichaSchema = new mongoose.Schema({
   // COMBATE (SOMENTE VALORES VARIÁVEIS)
   combate: {
     vida_atual: { type: Number, default: 0 },
-    sanidade_atual: { type: Number, default: 0 }
-  }
+    sanidade_atual: { type: Number, default: 0 },
+    pe_atual: { type: Number, default: 0 } // Pontos de Esforço atual
+  },
+
+  // PONTOS DE ESFORÇO MÁXIMO
+  pe_maximo: { type: Number, default: 0 },
+
+  // INVENTÁRIO
+  inventario: [{
+    nome: String,
+    quantidade: { type: Number, default: 1 },
+    descricao: String
+  }],
+
+  // PODERES PARANORMAIS
+  poderes_paranormais: [{
+    nome: String,
+    descricao: String,
+    custo_sanidade: { type: Number, default: 0 }
+  }],
+
+  // ANOTAÇÕES
+  anotacoes: String
 
 }, { timestamps: true });
 
