@@ -22,9 +22,9 @@ app.use(cors({
   credentials: true
 }));
 
-// Middlewares globais
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); 
+// Middlewares globais (aumentar limite para upload base64 maior)
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' })); 
 
 // Middleware de log para debug
 app.use((req, res, next) => {

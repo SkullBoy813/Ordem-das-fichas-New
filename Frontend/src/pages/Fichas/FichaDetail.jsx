@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import Cropper from "react-easy-crop";
 import Layout from "../../components/Layout";
 import Input from "../../components/Inputs";
 import { useFichaStore } from "../../store/useFichaStore";
@@ -23,6 +24,35 @@ function BarRow({ label, colorBg, current = 0, max = 0, onChange }) {
       </div>
     </div>
   );
+}
+
+async function getCroppedImg(imageSrc, pixelCrop) {
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute('crossOrigin', 'anonymous');
+    img.onload = () => resolve(img);
+    img.onerror = (error) => reject(error);
+    img.src = imageSrc;
+  });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+  const ctx = canvas.getContext('2d');
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  return canvas.toDataURL('image/jpeg', 0.88);
 }
 
 export default function FichaDetail() {
@@ -94,16 +124,23 @@ export default function FichaDetail() {
       sanidade_atual: 0,
       pe_atual: 0,
     },
+    avatar: "",
     habilidades: [],
     rituais: [],
     inventario: [],
     poderes_paranormais: [],
     anotacoes: "",
+    avatarCrop: { x: 50, y: 50 },
   });
 
   const [showHabilidades, setShowHabilidades] = useState(false);
   const [showRituais, setShowRituais] = useState(false);
+  const [showCropPreview, setShowCropPreview] = useState(false);
   const [newPericia, setNewPericia] = useState({ nome: "", valor: 0, modificador: 0 });
+  const [avatarCrop, setAvatarCrop] = useState({ x: 0, y: 0 });
+  const [avatarZoom, setAvatarZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
   const [newItem, setNewItem] = useState({ nome: "", quantidade: 1, descricao: "" });
   const [newPoder, setNewPoder] = useState({ nome: "", descricao: "", custo_sanidade: 0 });
   const [saveMessage, setSaveMessage] = useState({ type: "", text: "" });
@@ -160,6 +197,8 @@ export default function FichaDetail() {
         inventario: fichaAtual.inventario || [],
         poderes_paranormais: fichaAtual.poderes_paranormais || [],
         anotacoes: fichaAtual.anotacoes || "",
+        avatar: fichaAtual.avatar || "",
+        avatarCrop: fichaAtual.avatarCrop || { x: 50, y: 50 },
       });
     }
   }, [fichaAtual, isNew]);
@@ -195,6 +234,60 @@ export default function FichaDetail() {
       });
     } else {
       setForm({ ...form, [name]: value });
+    }
+  };
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxBytes = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxBytes) {
+      setSaveMessage({ type: 'error', text: 'A imagem excede 5MB. Escolha um arquivo menor.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result) {
+        setForm((prev) => ({ ...prev, avatar: reader.result }));
+        setAvatarCrop({ x: 0, y: 0 });
+        setAvatarZoom(1);
+        setCroppedAreaPixels(null);
+        setShowCropPreview(true);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onCropChange = (crop) => {
+    setAvatarCrop(crop);
+  };
+
+  const onzoomChange = (zoom) => {
+    setAvatarZoom(zoom);
+  };
+
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixelsData) => {
+    setCroppedAreaPixels(croppedAreaPixelsData);
+  }, []);
+
+  const applyCropToAvatar = async () => {
+    if (!form.avatar || !croppedAreaPixels) {
+      setSaveMessage({ type: 'error', text: 'Faça upload de uma imagem e selecione a área antes.' });
+      return;
+    }
+
+    try {
+      const croppedData = await getCroppedImg(form.avatar, croppedAreaPixels);
+      setForm((prev) => ({ ...prev, avatar: croppedData }));
+      setAvatarZoom(1);
+      setAvatarCrop({ x: 0, y: 0 });
+      setShowCropPreview(false);
+      setSaveMessage({ type: 'success', text: 'Crop aplicado com sucesso!' });
+    } catch (err) {
+      console.error('Erro ao aplicar crop:', err);
+      setSaveMessage({ type: 'error', text: 'Erro ao aplicar crop.' });
     }
   };
 
@@ -249,6 +342,8 @@ export default function FichaDetail() {
         custo_sanidade: Number(p.custo_sanidade) || 0,
       })) : [],
       anotacoes: form.anotacoes || "",
+      avatar: form.avatar || "",
+      avatarCrop: form.avatarCrop || { x: 50, y: 50 },
     };
 
     console.log('Dados sanitizados para enviar:', dadosParaEnviar);
@@ -345,6 +440,8 @@ export default function FichaDetail() {
         custo_sanidade: Number(p.custo_sanidade) || 0,
       })) : [],
       anotacoes: form.anotacoes || "",
+      avatar: form.avatar || "",
+      avatarCrop: form.avatarCrop || { x: 50, y: 50 },
     };
 
     try {
@@ -596,9 +693,54 @@ export default function FichaDetail() {
         <section className="bg-zinc-900 rounded-lg p-6 border-2 border-red-600/50 red-border-glow">
           <div className="flex items-start gap-6">
             <div className="w-48">
-              <div className="w-40 h-48 bg-zinc-800 rounded-md border border-zinc-700 overflow-hidden shadow-lg mx-auto">
-                <img src="/logo.svg" alt="Avatar" className="w-full h-full object-cover" />
+              <div className="relative w-40 h-48 bg-zinc-800 rounded-md border border-zinc-700 overflow-hidden shadow-lg mx-auto">
+                <img
+                  src={form.avatar || "/logo.svg"}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                  style={{ objectPosition: `${form.avatarCrop.x}% ${form.avatarCrop.y}%` }}
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition duration-200 flex items-center justify-center">
+                  <label className="cursor-pointer text-sm text-white bg-red-600/80 px-3 py-1 rounded">
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               </div>
+              <div className="mt-2 text-sm text-gray-300">
+                Use o editor para ajustar a área de corte arrastando o box.
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCropPreview(true)}
+                className="mt-2 w-full text-xs text-white bg-red-600 hover:bg-red-500 px-3 py-2 rounded"
+              >
+                Abrir Cropper
+              </button>
+              <button
+                type="button"
+                onClick={applyCropToAvatar}
+                className="mt-2 w-full text-xs text-white bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded"
+              >
+                Aplicar crop
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(prev => ({ ...prev, avatar: '', avatarCrop: { x: 0, y: 0 } }));
+                  setAvatarZoom(1);
+                  setAvatarCrop({ x: 0, y: 0 });
+                  setCroppedAreaPixels(null);
+                }}
+                className="mt-2 w-full text-xs text-white bg-zinc-700 hover:bg-zinc-600 px-3 py-2 rounded"
+              >
+                Restaurar padrão
+              </button>
             </div>
             <div className="flex-1">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 text-center md:text-left">Ficha do personagem</h2>
@@ -652,6 +794,69 @@ export default function FichaDetail() {
             </div>
           </div>
         </section>
+
+        {showCropPreview && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+            <div className="bg-zinc-900 border border-red-600/50 rounded-lg p-4 w-full max-w-md">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-white font-bold">Prévia do Avatar</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowCropPreview(false)}
+                  className="text-xs text-gray-300 hover:text-white"
+                >
+                  Fechar
+                </button>
+              </div>
+              <div className="mx-auto relative w-72 h-72 border border-zinc-700 bg-black">
+                {form.avatar ? (
+                  <Cropper
+                    image={form.avatar}
+                    crop={avatarCrop}
+                    zoom={avatarZoom}
+                    aspect={1}
+                    cropShape="round"
+                    showGrid={false}
+                    onCropChange={onCropChange}
+                    onZoomChange={onzoomChange}
+                    onCropComplete={onCropComplete}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full text-gray-500">Sem imagem para crop</div>
+                )}
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <label className="text-xs text-gray-300">Zoom</label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={avatarZoom}
+                  onChange={(e) => onzoomChange(Number(e.target.value))}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Arraste o rosto para posicionar e use zoom para dimensionar.</p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={applyCropToAvatar}
+                  className="text-xs bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-500"
+                >
+                  Aplicar crop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCropPreview(false)}
+                  className="text-xs bg-red-600 text-white px-3 py-2 rounded hover:bg-red-500"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Atributos (novo layout: título central, roda + barras) */}
         <section className="bg-zinc-900 rounded-lg p-6 border-2 border-red-600/50 red-border-glow">

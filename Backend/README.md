@@ -54,6 +54,25 @@ npm start
 - `GET /api/rituais` - Listar rituais
 - `POST /api/rituais` - Criar ritual
 
+## Avatar e Crop (Frontend)
+O sistema agora permite adicionar e editar avatar de personagem com crop visual em `FichaDetail.jsx`.
+
+- Nova rota do modelo `Ficha` (MongoDB):
+  - `avatar: String` (base64 URI)
+  - `avatarCrop: { x: Number, y: Number }`
+
+- Campos e comportamento:
+  - Upload de imagem (`input type="file"`) no formulário de ficha
+  - Preview de crop com `react-easy-crop` em modal
+  - Zoom e drag no crop box
+  - Botão `Aplicar crop` para gravar imagem recortada (canvas -> base64)
+  - Botão `Restaurar padrão`
+  - `FichasList` exibe avatar em cartão; fallback para inicial de nome
+
+- Configuração express aumentada:
+  - `express.json({ limit: '20mb' })`
+  - `express.urlencoded({ extended: true, limit: '20mb' })`
+
 ## CORS
 
 O servidor está configurado para aceitar requisições de:

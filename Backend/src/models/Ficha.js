@@ -64,7 +64,14 @@ const FichaSchema = new mongoose.Schema({
   }],
 
   // ANOTAÇÕES
-  anotacoes: String
+  anotacoes: String,
+
+  // AVATAR (base64 data URI / URL)
+  avatar: String,
+  avatarCrop: {
+    x: { type: Number, default: 50 },
+    y: { type: Number, default: 50 }
+  }
 
 }, { timestamps: true });
 

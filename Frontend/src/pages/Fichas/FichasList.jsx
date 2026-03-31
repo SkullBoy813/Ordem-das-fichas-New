@@ -50,10 +50,19 @@ export default function FichasList() {
               >
                 <div className="flex items-center gap-6">
                   {/* Avatar */}
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 border-2 border-red-600/50 flex items-center justify-center flex-shrink-0">
-                    <span className="text-red-600 text-2xl font-bold">
-                      {(ficha.nome || "?").charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 border-2 border-red-600/50 overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {ficha.avatar ? (
+                      <img
+                        src={ficha.avatar}
+                        alt={`${ficha.nome || 'Avatar'}`}
+                        className="w-full h-full object-cover"
+                        style={{ objectPosition: ficha.avatarCrop ? `${ficha.avatarCrop.x}% ${ficha.avatarCrop.y}%` : '50% 50%' }}
+                      />
+                    ) : (
+                      <span className="text-red-600 text-2xl font-bold">
+                        {(ficha.nome || "?").charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   
                   {/* Info */}
