@@ -7,10 +7,11 @@ const app = express();
 
 // Configuração CORS mais permissiva para desenvolvimento
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: [
+    "http://localhost:5173", // dev
+    "https://ordem-das-fichas-new-1vag-hxuqkrn6h-skullboy813s-projects.vercel.app"
+  ],
+  credentials: true
 }));
 
 // Middlewares globais
