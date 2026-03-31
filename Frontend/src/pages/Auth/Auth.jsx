@@ -69,9 +69,9 @@ export default function Auth() {
         senha: form.senha,
       });
       if (ok) {
-        // After successful registration, switch to login
-        setIsLogin(true);
-        setForm({ nome: "", email: "", senha: "", confirmarSenha: "" });
+        // Após cadastro bem-sucedido, já está autenticado e redireciona para fichas
+        navigate("/fichas");
+        return;
       }
     }
 

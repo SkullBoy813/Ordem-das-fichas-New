@@ -51,12 +51,21 @@ export const useAuthStore = create((set) => ({
   register: async (dados) => {
     set({ loading: true, error: null });
     try {
-      await api.post("/api/auth/register", {
+      const res = await api.post("/api/auth/register", {
         username: dados.nome,
         email: dados.email,
         password: dados.senha,
       });
-      set({ loading: false });
+
+      // Auto-login após registro
+      const { token, user } = res.data;
+      if (token) {
+        localStorage.setItem("token", token);
+        set({ user, loading: false, isAuthenticated: true });
+      } else {
+        set({ loading: false });
+      }
+
       return true;
     } catch (err) {
       set({

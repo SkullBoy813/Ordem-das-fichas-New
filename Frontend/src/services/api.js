@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"; // ajuste sua porta backend se necessário
 
-if (!API_BASE_URL) {
-  throw new Error("VITE_API_URL não definida");
+if (!import.meta.env.VITE_API_URL) {
+  console.warn("VITE_API_URL não definida. Usando http://localhost:5000 como fallback.");
 }
 
 export const api = axios.create({

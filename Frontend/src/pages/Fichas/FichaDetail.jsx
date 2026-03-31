@@ -6,6 +6,25 @@ import { useFichaStore } from "../../store/useFichaStore";
 import { useHabilidadeStore } from "../../store/useHabilidadeStore";
 import { useRitualStore } from "../../store/useRitualStore";
 
+function BarRow({ label, colorBg, current = 0, max = 0, onChange }) {
+  const pct = max > 0 ? Math.round((current / max) * 100) : 0;
+  return (
+    <div>
+      <div className={`flex items-center justify-between ${colorBg} rounded px-3 py-2`}>
+        <span className="font-semibold">{label}</span>
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={() => onChange(Math.max(0, (current || 0) - 1))} className="px-2 py-1 bg-black/30 rounded">&lt;&lt;</button>
+          <div className="px-3 py-1 rounded text-white text-sm bg-black/40">{current}/{max}</div>
+          <button type="button" onClick={() => onChange(Math.min(max || Number.MAX_SAFE_INTEGER, (current || 0) + 1))} className="px-2 py-1 bg-black/30 rounded">&gt;&gt;</button>
+        </div>
+      </div>
+      <div className="h-3 bg-zinc-800 rounded overflow-hidden mt-2">
+        <div className={`${colorBg} h-full`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export default function FichaDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -520,26 +539,6 @@ export default function FichaDetail() {
       setSaveMessage({ type: 'error', text: 'Erro ao atualizar combate' });
     }
   };
-
-  // Small reusable bar row component
-  function BarRow({ label, colorBg, current = 0, max = 0, onChange }) {
-    const pct = max > 0 ? Math.round((current / max) * 100) : 0;
-    return (
-      <div>
-        <div className={`flex items-center justify-between ${colorBg} rounded px-3 py-2`}> 
-          <span className="font-semibold">{label}</span>
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => onChange(Math.max(0, (current || 0) - 1))} className="px-2 py-1 bg-black/30 rounded">&lt;&lt;</button>
-            <div className="px-3 py-1 rounded text-white text-sm bg-black/40">{current}/{max}</div>
-            <button type="button" onClick={() => onChange(Math.min(max || Number.MAX_SAFE_INTEGER, (current || 0) + 1))} className="px-2 py-1 bg-black/30 rounded">&gt;&gt;</button>
-          </div>
-        </div>
-        <div className="h-3 bg-zinc-800 rounded overflow-hidden mt-2">
-          <div className={`${colorBg} h-full`} style={{ width: `${pct}%` }} />
-        </div>
-      </div>
-    );
-  }
 
   if (loading && !isNew && !fichaAtual) {
     return (
